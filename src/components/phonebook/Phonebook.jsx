@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { addContact } from '../../redux/slicePhoneBook';
+import { addContact } from 'redux/operations';
 import {
   PhonebookContainer,
   Title,
@@ -14,13 +14,17 @@ import {
 
 const Phonebook = () => {
   const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+  const [phone, setNumber] = useState('');
 
   const dispatch = useDispatch();
-  const contacts = useSelector(state => state.persistedReducer.phoneBook);
+  const contacts = useSelector(state => state.contacts.items);
   const reset = () => {
     setName('');
     setNumber('');
+  };
+  const handleSubmit = () => {
+    dispatch(addContact({ name, phone, id: nanoid() }));
+    reset();
   };
   return (
     <PhonebookContainer>
@@ -28,19 +32,12 @@ const Phonebook = () => {
       <Form
         onSubmit={e => {
           e.preventDefault();
+
           contacts.find(
             el => el.name.toLocaleLowerCase() === name.toLocaleLowerCase()
           )
             ? alert(`${name} is already in contacts`)
-            : dispatch(
-                addContact({
-                  name,
-                  number,
-                  id: nanoid(),
-                })
-              );
-
-          reset();
+            : handleSubmit();
         }}
       >
         <Label htmlFor="name">
@@ -60,7 +57,7 @@ const Phonebook = () => {
           <Input
             type="tel"
             name="number"
-            value={number}
+            value={phone}
             onChange={e => setNumber(e.target.value)}
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"

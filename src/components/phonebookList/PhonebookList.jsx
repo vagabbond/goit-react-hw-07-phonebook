@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { fetchContacts, deleteContact } from 'redux/operations';
 
-import { deleteContact } from 'redux/slicePhoneBook';
 import { change } from 'redux/sliceFilter';
 import {
   PhonebookListStyled,
@@ -13,8 +14,15 @@ import { Title, Label, Input } from '../phonebook/Phonebook.styled';
 
 const PhonebookList = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(state => state.persistedReducer.phoneBook);
-  const filter = useSelector(state => state.persistedReducer.filter);
+  const contacts = useSelector(state => state.contacts.items);
+  const filter = useSelector(state => state.filter);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase())
+  );
   return contacts.length > 0 ? (
     <PhonebookListWrap>
       <Title>Contacts</Title>
@@ -29,16 +37,11 @@ const PhonebookList = () => {
         ></Input>
       </Label>
       <PhonebookListStyled>
-        {contacts
-          .filter(contact =>
-            contact.name
-              .toLocaleLowerCase()
-              .includes(filter.toLocaleLowerCase())
-          )
-          .map(el => {
+        {filteredContacts.length > 0 ? (
+          filteredContacts.map(el => {
             return (
               <PhonebookListItem key={el.id}>
-                {el.name}:{el.number}
+                {el.name}: {el.phone}
                 <DeleteButton
                   type="button"
                   onClick={() => {
@@ -50,7 +53,10 @@ const PhonebookList = () => {
                 </DeleteButton>
               </PhonebookListItem>
             );
-          })}
+          })
+        ) : (
+          <Title>You don't have contact with this name</Title>
+        )}
       </PhonebookListStyled>
     </PhonebookListWrap>
   ) : (
